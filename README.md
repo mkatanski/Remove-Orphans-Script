@@ -5,7 +5,9 @@ This script helps user to move linking words from the end of the line into new l
 
 You can select text objects to apply this script or just run without selection. In this case it will apply to all text elements in currently active document.
 
-At this moment it supports only Polish language.
+At this moment script supports following languages:
+- Polish
+- Cesky
 
 It has not been tested in older versions of InDesign yet.
 

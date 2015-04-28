@@ -12,17 +12,20 @@ var config = {
         'Cell', 'Character', 'Column', 'Line', 'Paragraph', 'Row', 'Story', 'Table', 'Text',
         'TextColumn', 'TextFrame', 'TextStyleRange', 'TextPath', 'Word'
     ],
-    chars: ['a', 'i', 'o', 'u', 'w', 'z', 'A', 'I', 'O', 'U', 'W', 'Z']
+    chars: {
+        "Polski": ['a', 'i', 'o', 'u', 'w', 'z', 'A', 'I', 'O', 'U', 'W', 'Z'],
+        "Cesky": ['a', 'i', 'k', 'o', 's', 'u', 'v', 'z', 'A', 'I', 'K', 'O', 'S', 'U', 'V', 'Z']
+    }
 };
 
 
 /**
  * Find element in array
- * 
+ *
  * @param element element to find
  * @returns {number} index of element or -1 if not exists
  */
-Array.prototype.indexOf = function(element) {
+Array.prototype.indexOf = function (element) {
     var length = this.length;
 
     for (var i = 0; i < length; i++) {
@@ -53,7 +56,7 @@ function appendTextFramesToSelection(curObject, length, selectedElements) {
 /**
  * If application is not allowed or there is no open document terminate script
  */
-function checkCurrentApplication() {   
+function checkCurrentApplication() {
     if (config.allowedApplications.indexOf(app.name) === -1) {
         alert('Invalid application. Script terminated.');
         exit();
@@ -71,7 +74,7 @@ function checkCurrentApplication() {
 function getSelectedElements() {
     var selectedElements = [],
         selectionLength = app.selection.length;
-    
+
     for (var x = 0; x < selectionLength; x++) {
         var elementType = app.selection[x].constructor.name,
             selContentsLength = app.selection[x].contents.length,
@@ -89,24 +92,24 @@ function getSelectedElements() {
 
             for (var gIndex = 0; gIndex < groupsLength; gIndex++) {
                 selectedElements = appendTextFramesToSelection(
-                    appSelection.groups[gIndex], 
-                    textFramesLength, 
+                    appSelection.groups[gIndex],
+                    textFramesLength,
                     selectedElements);
             }
         }
     }
-    
+
     return selectedElements;
 }
 
 function buildGreps() {
-    var charsLength = config.chars.length,
+    var charsLength = config.selectedChars.length,
         greps = [];
-    
+
     for (var charIndex = 0; charIndex < charsLength; charIndex++) {
         greps.push({
-            find: config.chars[charIndex] + '\r+',
-            changeTo: '\r' + config.chars[charIndex] + ' '
+            find: config.selectedChars[charIndex] + '\r+',
+            changeTo: '\r' + config.selectedChars[charIndex] + ' '
         });
     }
 
@@ -120,15 +123,54 @@ function buildGreps() {
  * Main function
  */
 function main() {
-    
+
     checkCurrentApplication();
+
+    var names = [],
+        proceed = true;
+
+    for (var key in config.chars) {
+        names.push(key);
+    }
+
+    var dialogWindow = new Window("dialog", "Linking Words", undefined, {closeButton: false});
+    dialogWindow.alignChildren = "right";
+    var mainGroup = dialogWindow.add("group");
+    mainGroup.add("statictext", undefined, "Language: ");
+
+    var group = mainGroup.add("group {alignChildren: 'left', orientation: 'stack'}");
+
+    var list = group.add("dropdownlist", [0, 0, 240, 20], names);
+    list.minimumSize.width = 220;
+    list.selection = 0;
+
+
+    var buttons = dialogWindow.add("group");
+    buttons.add("button", undefined, "OK", {name: "ok"});
+    cancelButton = buttons.add("button", undefined, "Cancel", {name: "cancel"});
+
+    cancelButton.onClick = function () {
+        proceed = false;
+        dialogWindow.hide();
+    };
+
+    var footer = dialogWindow.add("group");
+    footer.add("statictext", undefined, "Copyright Michał Katański 2015");
+
+    dialogWindow.show();
+
+    if (!proceed) {
+        return
+    }
+
+    config.selectedChars = config.chars[list.selection];
 
     var selectedElements = getSelectedElements(),
         greps = buildGreps();
 
     var selElementsLength = selectedElements.length;
 
-    for(var i = 0; i < greps.length; i++){
+    for (var i = 0; i < greps.length; i++) {
         app.findGrepPreferences.findWhat = greps[i].find;
         app.changeGrepPreferences.changeTo = greps[i].changeTo;
 
@@ -146,12 +188,19 @@ function main() {
         app.changeGrepPreferences = NothingEnum.nothing;
     }
 
+    var finishWindow = new Window("dialog", "Linking Words", undefined, {closeButton: true});
+
+    finishWindow.add("statictext", undefined, "Finished !!!");
+
     if (selElementsLength > 0) {
-        alert("Applied to selected elements.");
-        return
+        finishWindow.add("statictext", undefined, "Applied to selected elements.");
+    } else {
+        finishWindow.add("statictext", undefined, "No selection. Applied to active document.");
     }
-    alert("No selection. Applied to active document.");
-    
+
+    finishWindow.add("button", undefined, "Close", {name: "ok"});
+    finishWindow.show();
+
 }
 
 main();
