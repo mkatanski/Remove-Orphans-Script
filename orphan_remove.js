@@ -7,6 +7,7 @@
 // <summary>InDesign CC 2014 script. Removes orphans from text</summary>
 
 var config = {
+    scriptTitle: 'Remove Orphans',
     allowedApplications: ['Adobe InDesign'],
     allowedElementTypes: [
         'Cell', 'Character', 'Column', 'Line', 'Paragraph', 'Row', 'Story', 'Table', 'Text',
@@ -133,7 +134,7 @@ function main() {
         names.push(key);
     }
 
-    var dialogWindow = new Window("dialog", "Linking Words", undefined, {closeButton: false});
+    var dialogWindow = new Window("dialog", config.scriptTitle, undefined, {closeButton: false});
     dialogWindow.alignChildren = "right";
     var mainGroup = dialogWindow.add("group");
     mainGroup.add("statictext", undefined, "Language: ");
@@ -163,7 +164,7 @@ function main() {
         return
     }
 
-    var progressWindow = new Window("palette", "Linking Words", undefined, {closeButton: false});
+    var progressWindow = new Window("palette", config.scriptTitle, undefined, {closeButton: false});
     progressWindow.add("statictext", undefined, "Processing text... please wait.");
     progressWindow.show();
 
@@ -194,7 +195,7 @@ function main() {
 
     progressWindow.hide();
 
-    var finishWindow = new Window("dialog", "Linking Words", undefined, {closeButton: true});
+    var finishWindow = new Window("dialog", config.scriptTitle, undefined, {closeButton: true});
 
     finishWindow.add("statictext", undefined, "Finished !!!");
 
