@@ -1,7 +1,7 @@
-# Linking Words Script
-> InDesign CC 2014 script for moving linking words into new line
+# Remove Orphans Script
+> InDesign CC 2014 script for removing orphans in text
 
-This script helps user to move linking words from the end of the line into new line. To use it simply copy `linking_words.js` file into your InDesign scripts folder and run it from scripts menu in Adobe InDesign CC.
+This script helps user to remove orphans from the end of the line. To use it simply copy `orphan_remove.js` file into your InDesign scripts folder and run it from scripts menu in Adobe InDesign CC.
 
 You can select text objects to apply this script or just run without selection. In this case it will apply to all text elements in currently active document.
 
