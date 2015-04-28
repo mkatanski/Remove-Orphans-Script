@@ -163,6 +163,10 @@ function main() {
         return
     }
 
+    var progressWindow = new Window("palette", "Linking Words", undefined, {closeButton: false});
+    progressWindow.add("statictext", undefined, "Processing text... please wait.");
+    progressWindow.show();
+
     config.selectedChars = config.chars[list.selection];
 
     var selectedElements = getSelectedElements(),
@@ -187,6 +191,8 @@ function main() {
         app.findGrepPreferences = NothingEnum.nothing;
         app.changeGrepPreferences = NothingEnum.nothing;
     }
+
+    progressWindow.hide();
 
     var finishWindow = new Window("dialog", "Linking Words", undefined, {closeButton: true});
 
