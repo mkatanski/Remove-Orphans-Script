@@ -1,10 +1,10 @@
-﻿// <copyright file="linking_words.js">
+﻿// <copyright file="orphan_remove.js">
 // Copyright (c) Michał Katański 2015. All Right Reserved
 // </copyright>
 //
 // <author>Michał Katański</author>
 // <date>2015-04-28</date>
-// <summary>InDesign CC 2014 script. Moves characters from the end of the line to next line</summary>
+// <summary>InDesign CC 2014 script. Removes orphans from text</summary>
 
 var config = {
     allowedApplications: ['Adobe InDesign'],
