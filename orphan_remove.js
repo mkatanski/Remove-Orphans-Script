@@ -108,14 +108,12 @@ function buildGreps() {
         greps = [];
 
     for (var charIndex = 0; charIndex < charsLength; charIndex++) {
+        var cchar = config.selectedChars[charIndex];
         greps.push({
-            find: config.selectedChars[charIndex] + '\r+',
-            changeTo: '\r' + config.selectedChars[charIndex] + ' '
+            find: '\\<'+cchar+'\\s+',
+            changeTo: cchar+'~S'
         });
     }
-
-    // Replace double spaces into single spaces
-    greps.push({find: '  +', changeTo: ' '});
 
     return greps;
 }
@@ -178,6 +176,7 @@ function main() {
     for (var i = 0; i < greps.length; i++) {
         app.findGrepPreferences.findWhat = greps[i].find;
         app.changeGrepPreferences.changeTo = greps[i].changeTo;
+        app.changeGrepPreferences.noBreak = false;
 
         if (selElementsLength > 0) {
             // apply to only selected elements
