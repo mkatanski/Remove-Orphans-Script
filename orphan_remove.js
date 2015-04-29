@@ -4,24 +4,52 @@
 //
 // <author>Michał Katański</author>
 // <date>2015-04-28</date>
-// <summary>InDesign CC 2014 script. Removes orphans from text</summary>
+// <summary>Script for InDesign CS6 - CC 2014. Removes orphans from text</summary>
+
+#targetengine "session"
+
+//________________________________________________________________________________________________
+//                                                                                GLOBAL VARIABLES
 
 var config = {
-    scriptTitle: 'Remove Orphans',
+    scriptTitle: 'Remove Orphans v.0.2.3',
+    UIText: {
+        mainWindow: {
+            footerText: 'https://github.com/mkatanski/Remove-Orphans-Script',
+            dropLabel: 'Text language: '
+        },
+        progressWindow: {
+            message: 'Processing text... please wait.'
+        },
+        finalWindow: {
+            Title: 'Script finished successfully!',
+            noSelection: 'Orphans has been removed in selected elements.',
+            selection: 'Orphans has been removed in whole document.'
+        },
+        general: {
+            okBtn: 'OK',
+            cancelBtn: 'Cancel',
+            closeBtn: 'Close',
+            noDocError: 'No open document found. Script terminated.',
+            wrongAppError: 'Invalid application. Script terminated.'
+        }
+    },
     allowedApplications: ['Adobe InDesign'],
     allowedElementTypes: [
         'Cell', 'Character', 'Column', 'Line', 'Paragraph', 'Row', 'Story', 'Table', 'Text',
         'TextColumn', 'TextFrame', 'TextStyleRange', 'TextPath', 'Word'
     ],
     chars: {
-        "Polski": ['a', 'i', 'o', 'u', 'w', 'z', 'A', 'I', 'O', 'U', 'W', 'Z'],
-        "Cesky": ['a', 'i', 'k', 'o', 's', 'u', 'v', 'z', 'A', 'I', 'K', 'O', 'S', 'U', 'V', 'Z']
+        "Polish": ['a', 'i', 'o', 'u', 'w', 'z', 'A', 'I', 'O', 'U', 'W', 'Z'],
+        "Czech": ['a', 'i', 'k', 'o', 's', 'u', 'v', 'z', 'A', 'I', 'K', 'O', 'S', 'U', 'V', 'Z']
     }
 };
 
+//________________________________________________________________________________________________
+//                                                                            HELPERS & PROTOTYPES
 
 /**
- * Find element in array
+ * Get element index from array
  *
  * @param element element to find
  * @returns {number} index of element or -1 if not exists
@@ -37,6 +65,9 @@ Array.prototype.indexOf = function (element) {
 
     return -1;
 };
+
+//________________________________________________________________________________________________
+//                                                                                    CORE METHODS
 
 /**
  * Append text frames objects to selection list
@@ -59,12 +90,12 @@ function appendTextFramesToSelection(curObject, length, selectedElements) {
  */
 function checkCurrentApplication() {
     if (config.allowedApplications.indexOf(app.name) === -1) {
-        alert('Invalid application. Script terminated.');
+        alert(config.UIText.general.wrongAppError);
         exit();
     }
 
     if (app.documents.length === 0) {
-        alert('No open document found. Script terminated.');
+        alert(config.UIText.general.noDocError);
         exit();
     }
 }
@@ -110,68 +141,23 @@ function buildGreps() {
     for (var charIndex = 0; charIndex < charsLength; charIndex++) {
         var cchar = config.selectedChars[charIndex];
         greps.push({
-            find: '\\<'+cchar+'\\s+',
-            changeTo: cchar+'~S'
+            find: '\\<' + cchar + '\\s+',
+            changeTo: cchar + '~S'
         });
     }
 
     return greps;
 }
 
-/**
- * Main function
- */
-function main() {
+function doCompute() {
 
-    checkCurrentApplication();
-
-    var names = [],
-        proceed = true;
-
-    for (var key in config.chars) {
-        names.push(key);
-    }
-
-    var dialogWindow = new Window("dialog", config.scriptTitle, undefined, {closeButton: false});
-    dialogWindow.alignChildren = "right";
-    var mainGroup = dialogWindow.add("group");
-    mainGroup.add("statictext", undefined, "Language: ");
-
-    var group = mainGroup.add("group {alignChildren: 'left', orientation: 'stack'}");
-
-    var list = group.add("dropdownlist", [0, 0, 240, 20], names);
-    list.minimumSize.width = 220;
-    list.selection = 0;
-
-
-    var buttons = dialogWindow.add("group");
-    buttons.add("button", undefined, "OK", {name: "ok"});
-    cancelButton = buttons.add("button", undefined, "Cancel", {name: "cancel"});
-
-    cancelButton.onClick = function () {
-        proceed = false;
-        dialogWindow.hide();
-    };
-
-    var footer = dialogWindow.add("group");
-    footer.add("statictext", undefined, "Copyright Michał Katański 2015");
-
-    dialogWindow.show();
-
-    if (!proceed) {
-        return
-    }
-
-    var progressWindow = new Window("palette", config.scriptTitle, undefined, {closeButton: false});
-    progressWindow.add("statictext", undefined, "Processing text... please wait.");
-    progressWindow.show();
-
-    config.selectedChars = config.chars[list.selection];
-
-    var selectedElements = getSelectedElements(),
+    var finishWindowMessage = '',
+        progressWindow = createProgressWindow(),
+        selectedElements = getSelectedElements(),
+        selElementsLength = selectedElements.length,
         greps = buildGreps();
 
-    var selElementsLength = selectedElements.length;
+    progressWindow.show();
 
     for (var i = 0; i < greps.length; i++) {
         app.findGrepPreferences.findWhat = greps[i].find;
@@ -183,9 +169,11 @@ function main() {
             for (var elemIndex = 0; elemIndex < selElementsLength; elemIndex++) {
                 selectedElements[elemIndex].changeGrep();
             }
+            finishWindowMessage = config.UIText.finalWindow.selection;
         } else {
             // apply to document
             app.activeDocument.changeGrep();
+            finishWindowMessage = config.UIText.finalWindow.noSelection;
         }
 
         app.findGrepPreferences = NothingEnum.nothing;
@@ -193,20 +181,69 @@ function main() {
     }
 
     progressWindow.hide();
-
-    var finishWindow = new Window("dialog", config.scriptTitle, undefined, {closeButton: true});
-
-    finishWindow.add("statictext", undefined, "Finished !!!");
-
-    if (selElementsLength > 0) {
-        finishWindow.add("statictext", undefined, "Applied to selected elements.");
-    } else {
-        finishWindow.add("statictext", undefined, "No selection. Applied to active document.");
-    }
-
-    finishWindow.add("button", undefined, "Close", {name: "ok"});
-    finishWindow.show();
-
+    createFinishWindow(finishWindowMessage).show();
 }
 
-main();
+//________________________________________________________________________________________________
+//                                                                                 UI CONSTRUCTORS
+
+function createMainWindow() {
+    var languages = [];
+
+    for (var key in config.chars) {
+        languages.push(key);
+    }
+
+    var window = new Window('window', config.scriptTitle, undefined, {closeButton: false});
+    window.alignChildren = 'right';
+    var mainGroup = window.add('group');
+    mainGroup.add('statictext', undefined, config.UIText.mainWindow.dropLabel);
+
+    var group = mainGroup.add('group {alignChildren: "left", orientation: "stack"}');
+
+    var list = group.add('dropdownlist', [0, 0, 240, 20], languages);
+    list.minimumSize.width = 220;
+    list.selection = 0;
+
+    var buttons = window.add('group');
+    okButton = buttons.add('button', undefined, config.UIText.general.okBtn, {name: 'ok'});
+    cancelButton = buttons.add('button', undefined, config.UIText.general.cancelBtn, {name: 'cancel'});
+
+    var footer = window.add('group');
+    footer.add('statictext', undefined, config.UIText.mainWindow.footerText);
+
+    cancelButton.onClick = function () {
+        window.hide();
+    };
+
+    okButton.onClick = function () {
+        config.selectedChars = config.chars[list.selection];
+        window.hide();
+        doCompute();
+    };
+
+    return window;
+}
+
+function createProgressWindow() {
+    var window = new Window('palette', config.scriptTitle, undefined, {closeButton: false});
+    window.add('statictext', undefined, config.UIText.progressWindow.message);
+    return window;
+}
+
+function createFinishWindow(message) {
+    var window = new Window('dialog', config.scriptTitle, undefined, {closeButton: true});
+    window.add('statictext', undefined, config.UIText.finalWindow.Title);
+    window.add('statictext', undefined, message);
+    closeBtn = window.add('button', undefined, config.UIText.general.closeBtn, {name: 'close'});
+    closeBtn.onClick = function () {
+        window.hide();
+    };
+    return window;
+}
+
+//________________________________________________________________________________________________
+//                                                                              SCRIPT CONSTRUCTOR
+
+checkCurrentApplication();
+createMainWindow().show();
