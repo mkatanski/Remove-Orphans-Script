@@ -1,7 +1,7 @@
 # Remove Orphans Script
 > InDesign CS6 - CC 2014 script for removing orphans in text
 
-This script helps user to remove orphans from the end of the line. To use it simply copy `orphan_remove.js` file into your InDesign scripts folder. More information about installing scripts is in `installing` secion of this document.
+This script helps user to remove orphans from the end of the line. To use it simply copy `orphan_remove.js` file into your InDesign scripts folder. More information about installing scripts is in `installing` section of this document.
 
 The script can be used on selected objects or the entire active document.
 
@@ -10,6 +10,16 @@ Script supports following languages:
 - Czech
 
 It should work with inDesign CS6 and above
+
+## <a name="Using"></a> Using the script
+
+If you want to use the script only on selected objects, select them first. If you do not, the entire text contained in the active document will be processed.
+
+Then run the script. Will appear the main window of the script. Select the language you want to use. Language selection determines the type of conjunctions that the script should consider. Selected language of the text in InDesign, as well as the InDesign interface language does not affect the operation of the script.
+
+Press 'OK'.
+
+After a short while the text should be cleansed of 'hanging conjunctions'.
 
 ## <a name="Issues"></a> Issues
 
